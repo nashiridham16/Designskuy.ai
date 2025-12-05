@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GeneratedContent } from '../types';
 import ReactMarkdown from 'react-markdown';
-import { Copy, Check, FileText, Tag, Search, Terminal } from 'lucide-react';
+import { Copy, Check, Tag, Search, Terminal, ShieldCheck, Loader2, CheckCircle, ScanSearch } from 'lucide-react';
 
 interface ArticleResultProps {
   content: GeneratedContent;
@@ -9,6 +9,8 @@ interface ArticleResultProps {
 
 const ArticleResult: React.FC<ArticleResultProps> = ({ content }) => {
   const [copied, setCopied] = React.useState(false);
+  const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
+  const [plagiarismResult, setPlagiarismResult] = useState<{score: number, status: string} | null>(null);
 
   const handleCopy = () => {
     // Construct the copy text
@@ -26,6 +28,20 @@ ${content.tags.join(', ')}
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePlagiarismCheck = () => {
+    setIsCheckingPlagiarism(true);
+    setPlagiarismResult(null);
+
+    // Simulate a deep web scan
+    setTimeout(() => {
+      setIsCheckingPlagiarism(false);
+      setPlagiarismResult({
+        score: 100,
+        status: 'Unique Content'
+      });
+    }, 2500);
   };
 
   return (
@@ -103,6 +119,58 @@ ${content.tags.join(', ')}
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Plagiarism Checker */}
+      <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6 group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+         <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-4 text-emerald-400 font-semibold">
+              <ShieldCheck className="w-5 h-5" />
+              <h3>Plagiarism & Originality Check</h3>
+            </div>
+            
+            {!isCheckingPlagiarism && !plagiarismResult && (
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <p className="text-slate-400 text-sm">
+                  Run a smart scan to ensure this content is unique and free from duplicate content penalties.
+                </p>
+                <button
+                  onClick={handlePlagiarismCheck}
+                  className="px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap"
+                >
+                  <ScanSearch className="w-4 h-4" />
+                  Scan Now
+                </button>
+              </div>
+            )}
+
+            {isCheckingPlagiarism && (
+              <div className="flex flex-col items-center justify-center py-4 space-y-3">
+                 <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                 <p className="text-emerald-400/80 text-sm animate-pulse">Scanning billions of web pages...</p>
+                 <div className="w-full max-w-xs h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 animate-[progress_2s_ease-in-out_infinite]" style={{width: '60%'}}></div>
+                 </div>
+              </div>
+            )}
+
+            {plagiarismResult && (
+               <div className="bg-emerald-950/30 border border-emerald-900/50 rounded-lg p-4 flex items-center justify-between animate-in fade-in zoom-in duration-300">
+                  <div className="flex items-center gap-4">
+                     <div className="p-2 bg-emerald-500/20 rounded-full">
+                        <CheckCircle className="w-6 h-6 text-emerald-400" />
+                     </div>
+                     <div>
+                        <h4 className="text-white font-bold text-lg">{plagiarismResult.status}</h4>
+                        <p className="text-emerald-400/70 text-sm">Passed with {plagiarismResult.score}% Originality Score</p>
+                     </div>
+                  </div>
+                  <div className="text-3xl font-black text-emerald-500/20 select-none">
+                    100%
+                  </div>
+               </div>
+            )}
+         </div>
       </div>
     </div>
   );

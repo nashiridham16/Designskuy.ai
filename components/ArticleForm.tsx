@@ -43,7 +43,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
   };
 
   const removeSubtitle = (index: number) => {
-    if (formData.subtitles.length <= 3) return;
+    if (formData.subtitles.length <= 1) return; // Keep at least 1 input
     const newSubtitles = formData.subtitles.filter((_, i) => i !== index);
     setFormData(prev => ({ ...prev, subtitles: newSubtitles }));
   };
@@ -188,7 +188,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
         {/* Subtitles */}
         <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
           <label className={labelClass}>
-            Subtitles / Outline (Min 3)
+            Subtitles / Outline (Optional)
           </label>
           <div className="space-y-3">
             {formData.subtitles.map((subtitle, index) => (
@@ -199,10 +199,9 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
                   value={subtitle}
                   onChange={(e) => handleSubtitleChange(index, e.target.value)}
                   className={`${inputClass} py-2`}
-                  placeholder={index < 3 ? "Required subheading..." : "Additional subheading..."}
-                  required={index < 3} 
+                  placeholder="Subheading (leave empty to auto-generate)..."
                 />
-                {formData.subtitles.length > 3 && (
+                {formData.subtitles.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeSubtitle(index)}
@@ -216,7 +215,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
             ))}
           </div>
           <p className="text-xs text-slate-500 mt-3 ml-9">
-            * Start typing in the last field to automatically add a new line.
+            * Leave blank to let the AI generate at least 3 relevant subheadings automatically.
           </p>
         </div>
 

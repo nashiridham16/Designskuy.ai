@@ -3,7 +3,7 @@ import ArticleForm from './components/ArticleForm';
 import ArticleResult from './components/ArticleResult';
 import { generateSEOArticle } from './services/geminiService';
 import { ArticleFormData, GeneratedContent } from './types';
-import { Hexagon, PenTool } from 'lucide-react';
+import { Hexagon, PenTool, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
@@ -23,7 +23,7 @@ const App: React.FC = () => {
       
       const result = await generateSEOArticle({
         ...data,
-        subtitles: cleanSubtitles.length > 0 ? cleanSubtitles : ['Overview', 'Key Features', 'Conclusion']
+        subtitles: cleanSubtitles // Pass cleaned subtitles directly. Service handles empty array.
       });
       
       setGeneratedContent(result);
@@ -31,6 +31,14 @@ const App: React.FC = () => {
       setError("Failed to generate article. Please check your API key and try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    if (window.confirm("Are you sure you want to create a new article? This will clear all current data.")) {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
     }
   };
 
@@ -108,6 +116,17 @@ const App: React.FC = () => {
             {generatedContent && (
               <ArticleResult content={generatedContent} />
             )}
+          </div>
+
+          {/* Create New Article Button */}
+          <div className="flex justify-center pt-8 pb-4">
+             <button 
+               onClick={handleReset}
+               className="group flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-rose-950/30 text-slate-400 hover:text-rose-400 border border-slate-700 hover:border-rose-900/50 rounded-full transition-all duration-300 shadow-lg hover:shadow-rose-900/20"
+             >
+               <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+               <span className="font-medium text-sm">Create New Article</span>
+             </button>
           </div>
 
         </div>

@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, SchemaType } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ArticleFormData } from "../types";
 
 // Initialize the client
@@ -48,6 +48,11 @@ export const generateSEOArticle = async (formData: ArticleFormData): Promise<any
     - Include the main keyword.
   `;
 
+  // Logic to handle optional subtitles
+  const subheadingInstruction = formData.subtitles.length > 0
+    ? formData.subtitles.map(s => `- ${s}`).join('\n')
+    : "- Auto-generate at least 3 relevant subheadings that cover the topic comprehensively.";
+
   const prompt = `
     Generate a complete SEO article based on the following specifications:
     
@@ -58,9 +63,8 @@ export const generateSEOArticle = async (formData: ArticleFormData): Promise<any
     - **Writing Style:** ${formData.style}
     - **Article Goal:** ${formData.goal}
     - **Brand/Product Name:** ${formData.brand}
-    - **Required Subheadings:**
-      ${formData.subtitles.filter(s => s.trim() !== '').map(s => `- ${s}`).join('\n')}
-      (Feel free to add more subheadings if necessary to reach the word count or improve flow)
+    - **Structure/Subheadings:**
+      ${subheadingInstruction}
 
     **CRITICAL STRUCTURAL REQUIREMENTS:**
     1. **Introduction:** The very first paragraph MUST be an introduction that naturally includes the primary keywords (${formData.keywords}).
