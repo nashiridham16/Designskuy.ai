@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { GeneratedContent } from '../types';
 import ReactMarkdown from 'react-markdown';
-import { Copy, Check, Tag, Search, Terminal, ShieldCheck, Loader2, CheckCircle, ScanSearch, BarChart3, Eye, EyeOff, Award, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Copy, Check, Tag, Search, Terminal, ShieldCheck, Loader2, CheckCircle, ScanSearch, BarChart3, Eye, EyeOff, Award } from 'lucide-react';
 
 interface ArticleResultProps {
   content: GeneratedContent;
