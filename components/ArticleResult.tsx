@@ -26,6 +26,7 @@ const ArticleResult: React.FC<ArticleResultProps> = ({ content }) => {
     return keywordList.map(kw => {
       // Escape special regex characters in the keyword
       const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Use word boundaries \b to ensure we count exact words, not substrings
       const regex = new RegExp(`\\b${escapedKw}\\b`, 'gi');
       const count = (textLower.match(regex) || []).length;
       const density = (count / totalWords) * 100;
@@ -78,12 +79,17 @@ ${content.tags.join(', ')}
   const HighlightText = ({ text }: { text: string }) => {
     if (!showKeywordHighlights || !text) return <>{text}</>;
 
-    // Create a regex that matches any of the keywords, case insensitive
-    // Escape special characters in keywords
-    const escapedKeywords = keywordList.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    if (escapedKeywords.length === 0) return <>{text}</>;
+    // Create a regex that matches any of the keywords, case insensitive, with word boundaries
+    const regexPattern = keywordList
+      .map(k => {
+        const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return `\\b${escaped}\\b`;
+      })
+      .join('|');
 
-    const regex = new RegExp(`(${escapedKeywords.join('|')})`, 'gi');
+    if (!regexPattern) return <>{text}</>;
+
+    const regex = new RegExp(`(${regexPattern})`, 'gi');
     const parts = text.split(regex);
 
     return (
