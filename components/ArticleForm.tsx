@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArticleFormData, Language, WritingStyle, ArticleGoal } from '../types';
-import { Loader2, Trash2, Wand2, Sparkles } from 'lucide-react';
+import { Loader2, Trash2, Wand2, Sparkles, Image as ImageIcon } from 'lucide-react';
 
 interface ArticleFormProps {
   onSubmit: (data: ArticleFormData) => void;
@@ -17,6 +17,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
     goal: ArticleGoal.INFORMATION,
     brand: '',
     subtitles: ['', '', ''],
+    subtitlesWithImages: [],
     additionalPrompt: '',
   });
 
@@ -43,9 +44,43 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
   };
 
   const removeSubtitle = (index: number) => {
-    if (formData.subtitles.length <= 1) return; // Keep at least 1 input
+    if (formData.subtitles.length <= 1) return;
+    
     const newSubtitles = formData.subtitles.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, subtitles: newSubtitles }));
+    
+    // Also update the image selection indices
+    // If we remove index 1, index 2 becomes 1. We need to shift selected indices.
+    const newSubtitlesWithImages = formData.subtitlesWithImages
+      .filter(i => i !== index) // Remove if the deleted one was selected
+      .map(i => i > index ? i - 1 : i); // Shift indices greater than deleted
+      
+    setFormData(prev => ({ 
+      ...prev, 
+      subtitles: newSubtitles,
+      subtitlesWithImages: newSubtitlesWithImages
+    }));
+  };
+
+  const toggleImageSelection = (index: number) => {
+    setFormData(prev => {
+      const isSelected = prev.subtitlesWithImages.includes(index);
+      
+      if (isSelected) {
+        return {
+          ...prev,
+          subtitlesWithImages: prev.subtitlesWithImages.filter(i => i !== index)
+        };
+      } else {
+        if (prev.subtitlesWithImages.length >= 3) {
+          alert("Maximum 3 subheadings can have generated images.");
+          return prev;
+        }
+        return {
+          ...prev,
+          subtitlesWithImages: [...prev.subtitlesWithImages, index]
+        };
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -190,29 +225,52 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ onSubmit, isLoading }) => {
           <label className={labelClass}>
             Subtitles / Outline (Optional)
           </label>
+          <div className="mb-2 text-xs text-slate-400 flex items-center gap-2">
+             <ImageIcon className="w-3 h-3 text-yellow-400" />
+             <span>Click the image icon to generate an illustration for that section (Max 3).</span>
+          </div>
           <div className="space-y-3">
-            {formData.subtitles.map((subtitle, index) => (
-              <div key={index} className="flex gap-3 items-center group">
-                <span className="text-sm text-slate-500 w-6 font-mono font-bold">{index + 1}.</span>
-                <input
-                  type="text"
-                  value={subtitle}
-                  onChange={(e) => handleSubtitleChange(index, e.target.value)}
-                  className={`${inputClass} py-2`}
-                  placeholder="Subheading (leave empty to auto-generate)..."
-                />
-                {formData.subtitles.length > 1 && (
-                  <button
+            {formData.subtitles.map((subtitle, index) => {
+              const hasImage = formData.subtitlesWithImages.includes(index);
+              return (
+                <div key={index} className="flex gap-3 items-center group">
+                  <span className="text-sm text-slate-500 w-6 font-mono font-bold">{index + 1}.</span>
+                  <input
+                    type="text"
+                    value={subtitle}
+                    onChange={(e) => handleSubtitleChange(index, e.target.value)}
+                    className={`${inputClass} py-2`}
+                    placeholder="Subheading (leave empty to auto-generate)..."
+                  />
+                  
+                  {/* Image Toggle */}
+                   <button
                     type="button"
-                    onClick={() => removeSubtitle(index)}
-                    className="p-2 text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                    title="Remove subheading"
+                    onClick={() => toggleImageSelection(index)}
+                    disabled={subtitle.trim() === ''}
+                    className={`p-2 rounded-lg border transition-all ${
+                      hasImage 
+                        ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400' 
+                        : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-yellow-200'
+                    } ${subtitle.trim() === '' ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
+                    title={hasImage ? "Image generation enabled" : "Enable image generation for this section"}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <ImageIcon className="w-5 h-5" />
                   </button>
-                )}
-              </div>
-            ))}
+
+                  {formData.subtitles.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeSubtitle(index)}
+                      className="p-2 text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Remove subheading"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <p className="text-xs text-slate-500 mt-3 ml-9">
             * Leave blank to let the AI generate at least 3 relevant subheadings automatically.
